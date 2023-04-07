@@ -3,9 +3,10 @@ import torch
 from models.DIP_2D import DIP_2D
 import pytorch_lightning as pl
 import numpy as np
+import matplotlib.pyplot as plt
 
 settings_config = {
-    # "image" : (['image4_0']), # Image from database
+   
     "random_seed" : True, # If True, random seed is used for reproducibility (must be set to False to vary weights initialization)
     # "method" : (['nested']), # Reconstruction algorithm (nested, Gong, or algorithms from CASToR (MLEM, BSREM, AML, etc.))'ADMMLim'
     "processing_unit" : 'CPU', # CPU or GPU
@@ -13,7 +14,7 @@ settings_config = {
     "FLTNB" : 'float', # FLTNB precision must be set as in CASToR (double necessary for ADMMLim and nested)
     "debug" : False, # Debug mode = run without raytune and with one iteration
     "ray" : True, # Ray mode = run with raytune if True, to run several settings in parallel
-    "tensorboard" : True, # Tensorboard mode = show results in tensorboard
+    "tensorboard" : False # Tensorboard mode = show results in tensorboard
     # "all_images_DIP" : (['True']), # Option to store only 10 images like in tensorboard (quicker, for visualization, set it to "True" by default). Can be set to "True", "False", "Last" (store only last image)
     # "experiment" : ([24]),
     # "replicates" : (list(range(1,1+1))), # List of desired replicates. list(range(1,n+1)) means n replicates
@@ -47,7 +48,7 @@ hyperparameters_config = {
     ## network hyperparameters
     "lr" : 1e-4, # Learning rate in network optimization
     # "lr" : ([0.01]), # Learning rate in network optimization
-    "sub_iter_DIP" : 20, # Number of epochs in network optimization
+    "sub_iter_DIP" : 500, # Number of epochs in network optimization
     "opti_DIP" : 'Adam', # Optimization algorithm in neural network training (Adam, LBFGS)
     "skip_connections" : 3, # Number of skip connections in DIP architecture (0, 1, 2, 3)
     # "scaling" : (['standardization']), # Pre processing of neural network input (nothing, uniform, normalization, standardization)
@@ -157,19 +158,20 @@ split_config = {
     "hyperparameters" : list(hyperparameters_config.keys())
 }
 
-#todo:
-path_noisy="/home/xzhang/Documents/DIP/image/BSREM_it30.img"
-path_output = "/home/xzhang/Documents/DIP/image/"
-PETImage_shape=(112,112,1)
-image_corrupt=fijii_np(path_noisy,PETImage_shape)
-image_corrupt_input_scale,param1_scale_im_corrupt,param2_scale_im_corrupt = rescale_imag(image_corrupt,"standardization")
-image_corrupt_torch = torch.Tensor(image_corrupt_input_scale)
+
+path_noisy="/home/xzhang/Documents/我的模型/image/BSREM_it30.img" # 含噪图片位置
+path_output = "/home/xzhang/Documents/我的模型/image/"            # 输出图片位置
+PETImage_shape=(112,112,1)  # 输入图片的大小
+image_corrupt=fijii_np(path_noisy,PETImage_shape) # 读取图片并将图片转换成numpy array
+image_corrupt_input_scaled,param1_scale_im_corrupt,param2_scale_im_corrupt = rescale_imag(image_corrupt,"standardization") # 标准化图片, 减去平均值，除以标准差，参数1是mean，参数2是std
+image_corrupt_torch = torch.Tensor(image_corrupt_input_scaled)
 image_corrupt_torch = image_corrupt_torch.view(1,1,PETImage_shape[0],PETImage_shape[1],PETImage_shape[2])
 image_corrupt_torch = image_corrupt_torch[:,:,:,:,0]
 
 PETImage_shape=(112,112,1)
 image_net_input =np.random.uniform(PETImage_shape)
-image_net_input_torch = torch.Tensor(image_net_input)
+image_net_input_torch = torch.rand(*PETImage_shape)
+
 image_net_input_torch = image_net_input_torch.view(1,1,PETImage_shape[0],PETImage_shape[1],PETImage_shape[2])
 image_net_input_torch = image_net_input_torch[:,:,:,:,0]
 
@@ -181,9 +183,20 @@ image_corrupt_input_scale,param1_scale_im_corrupt,param2_scale_im_corrupt = resc
 train_dataset = torch.utils.data.TensorDataset(image_net_input_torch, image_corrupt_torch)
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=1) 
 
-model = DIP_2D(param1_scale_im_corrupt, param2_scale_im_corrupt, 'standardization', config,'data/Algo/',path_output,"nested",all_images_DIP="True",global_it=-100, fixed_hyperparameters_list="for early stopping", hyperparameters_list="for early stopping", debug=config["debug"], suffix="suffix", last_iter=-1)
+model = DIP_2D(param1_scale_im_corrupt, param2_scale_im_corrupt, 'standardization', config,'data/Algo/',
+               path_output,"nested",all_images_DIP="False",global_it=-100, fixed_hyperparameters_list="for early stopping",
+               hyperparameters_list="for early stopping", debug=config["debug"], suffix="suffix", last_iter=-1)
 model_class = DIP_2D
 trainer = pl.Trainer(max_epochs=config["sub_iter_DIP"],log_every_n_steps=1)#, callbacks=[checkpoint_callback, tuning_callback, early_stopping_callback], logger=logger,gpus=gpus, accelerator=accelerator, profiler="simple")
 
 trainer.fit(model, train_dataloader)
 out = model(image_net_input_torch)
+
+print(out.shape)
+image_out = out.view(PETImage_shape[0],PETImage_shape[1],PETImage_shape[2]).detach().numpy()
+image_concat = np.concatenate((image_corrupt, destand_numpy_imag(image_out,param1_scale_im_corrupt,param2_scale_im_corrupt)), axis=1)
+# 使用 Matplotlib 的 imshow() 函数显示图片
+plt.imshow(image_concat, cmap='gray')
+# plt.imshow(image_corrupt_input_scaled,cmap='gray')
+# plt.imshow(image_out,cmap='gray')
+plt.show()

@@ -7,24 +7,25 @@ from numpy import inf
 import os
 
 # Local files to import
-from iWMV import iWMV
+#from iWMV import iWMV
 
 class DIP_2D(pl.LightningModule):
 
-    def __init__(self, param1_scale_im_corrupt, param2_scale_im_corrupt, scaling_input, config, root, path, method, all_images_DIP, global_it, fixed_hyperparameters_list, hyperparameters_list, debug, suffix, last_iter):
+    def __init__(self, param1_scale_im_corrupt, param2_scale_im_corrupt, 
+                 scaling_input, config, root, path, method, all_images_DIP,
+                 global_it, fixed_hyperparameters_list, hyperparameters_list, debug, suffix, last_iter):
+        #初始化内部参数
         super().__init__()
 
-        #'''
-        # Set random seed if asked (for NN weights here)
+        # Set random seed if asked (for NN weights here) 这里是为了初始化权重的时候固定随机数，还原每次模型的结果
         if (os.path.isfile(root + "/seed.txt")): # Put root for path because raytune path !!!
             with open(root + "/seed.txt", 'r') as file:
                 random_seed = file.read().rstrip()
             if (eval(random_seed)):
                 pl.seed_everything(1)
-
-        #'''
         
-        # Defining variables from config        
+        # Defining variables from config
+        #依次为学习率，优化器种类（adam） ，迭代次数，skip 个数，方法，是否保存DIP， ？，？，？ ，保存路径，？，？，early stopping的算法相关     
         self.lr = config['lr']
         self.opti_DIP = config['opti_DIP']
         self.sub_iter_DIP = config['sub_iter_DIP']
@@ -34,31 +35,27 @@ class DIP_2D(pl.LightningModule):
         self.global_it = global_it
         self.param1_scale_im_corrupt = param1_scale_im_corrupt
         self.param2_scale_im_corrupt = param2_scale_im_corrupt
-        # self.subroot = subroot
-        self.path=path
+
+        self.path="/home/xzhang/Documents/我的模型/image/"
         self.config = config
-        self.experiment = config["experiment"]
-        '''
-        ## Variables for WMV ##
-        self.queueQ = []
-        self.VAR_min = inf
-        self.SUCCESS = False
-        self.stagnate = 0
-        '''
-        self.DIP_early_stopping = config["DIP_early_stopping"]
-        self.classWMV = iWMV(config)
-        if(self.DIP_early_stopping):
+        # self.experiment = config["experiment"]
+        
+        # 以下early stopping相关的我暂时不关心
+        # Defining variables from config    
+        # self.DIP_early_stopping = config["DIP_early_stopping"]
+        # self.classWMV = iWMV(config)
+        # if(self.DIP_early_stopping):
             
-            self.classWMV.fixed_hyperparameters_list = fixed_hyperparameters_list
-            self.classWMV.hyperparameters_list = hyperparameters_list
-            self.classWMV.debug = debug
-            self.classWMV.param1_scale_im_corrupt = param1_scale_im_corrupt
-            self.classWMV.param2_scale_im_corrupt = param2_scale_im_corrupt
-            self.classWMV.scaling_input = scaling_input
-            self.classWMV.suffix = suffix
-            self.classWMV.global_it = global_it
-            # Initialize variables
-            self.classWMV.do_everything(config,root)
+        #     self.classWMV.fixed_hyperparameters_list = fixed_hyperparameters_list
+        #     self.classWMV.hyperparameters_list = hyperparameters_list
+        #     self.classWMV.debug = debug
+        #     self.classWMV.param1_scale_im_corrupt = param1_scale_im_corrupt
+        #     self.classWMV.param2_scale_im_corrupt = param2_scale_im_corrupt
+        #     self.classWMV.scaling_input = scaling_input
+        #     self.classWMV.suffix = suffix
+        #     self.classWMV.global_it = global_it
+        #     # Initialize variables
+        #     self.classWMV.do_everything(config,root)
 
         self.write_current_img_mode = True
         #self.suffix = self.suffix_func(config,hyperparameters_list)
@@ -67,20 +64,14 @@ class DIP_2D(pl.LightningModule):
         self.suffix = suffix
         
         self.last_iter = last_iter + 1
-
-        '''
-        if (config['mlem_sequence'] is None):
-            self.write_current_img_mode = True
-            self.suffix = self.suffix_func(config)
-        else:
-            self.write_current_img_mode = False
-        '''
+        
+        
         # Defining CNN variables
         L_relu = 0.2
         num_channel = [16, 32, 64, 128]
         pad = [0, 0]
 
-        # Layers in CNN architecture
+        # Layers in CNN architecture,定义各个层
         self.deep1 = nn.Sequential(nn.ReplicationPad2d(1),
                                    nn.Conv2d(1, num_channel[0], (3, 3), stride=1, padding=pad[1]),
                                    nn.BatchNorm2d(num_channel[0]),
@@ -215,13 +206,16 @@ class DIP_2D(pl.LightningModule):
 
         return out
 
+    # 定义损失函数为输出和含噪图像的tensor的mse
     def DIP_loss(self, out, image_corrupt_torch):
         return torch.nn.MSELoss()(out, image_corrupt_torch) # for DIP and DD
 
+    # 定义训练流程，计算一次前向传播返回loss，（中间有logger记录tensorboard和early stopping）
     def training_step(self, train_batch, batch_idx):
+        # train_batch 包含image_net_input_torch和image_corrupt_torch 分别为噪音图像和含噪图像 
         image_net_input_torch, image_corrupt_torch = train_batch
         out = self.forward(image_net_input_torch)
-        # Save image over epochs
+        # Save image over epochs 如果开启保存模式则会把每一次epoch结果保存起来
         if (self.write_current_img_mode):
             self.write_current_img(out)
 
@@ -234,35 +228,32 @@ class DIP_2D(pl.LightningModule):
         # text_file.write("epoch = " + str(self.current_epoch) + " : " + str(rel_max_diff) + "\n")
         # text_file.close()
 
-
-
-
         # logging using tensorboard logger
-        self.logger.experiment.add_scalar('loss', loss,self.current_epoch)        
+        # self.logger.experiment.add_scalar('loss', loss,self.current_epoch)        
+        # # WMV
+        # self.log("SUCCESS", int(self.classWMV.SUCCESS))
+        # if (self.DIP_early_stopping):
+        #     self.classWMV.SUCCESS,self.classWMV.VAR_min,self.classWMV.stagnate = self.classWMV.WMV(out.detach().numpy(),self.current_epoch,self.classWMV.queueQ,self.classWMV.SUCCESS,self.classWMV.VAR_min,self.classWMV.stagnate)
+        #     self.VAR_recon = self.classWMV.VAR_recon
+        #     self.MSE_WMV = self.classWMV.MSE_WMV
+        #     self.PSNR_WMV = self.classWMV.PSNR_WMV
+        #     self.SSIM_WMV = self.classWMV.SSIM_WMV
+        #     self.epochStar = self.classWMV.epochStar
+            
+            # if self.EMV_or_WMV == "EMV":
+            #     self.alpha_EMV = self.classWMV.alpha_EMV
+            # else:
+            #     self.windowSize = self.classWMV.windowSize
+            
+            # self.patienceNumber = self.classWMV.patienceNumber
+            # self.SUCCESS = self.classWMV.SUCCESS
 
-        # WMV
-        self.log("SUCCESS", int(self.classWMV.SUCCESS))
-        if (self.DIP_early_stopping):
-            self.classWMV.SUCCESS,self.classWMV.VAR_min,self.classWMV.stagnate = self.classWMV.WMV(out.detach().numpy(),self.current_epoch,self.classWMV.queueQ,self.classWMV.SUCCESS,self.classWMV.VAR_min,self.classWMV.stagnate)
-            self.VAR_recon = self.classWMV.VAR_recon
-            self.MSE_WMV = self.classWMV.MSE_WMV
-            self.PSNR_WMV = self.classWMV.PSNR_WMV
-            self.SSIM_WMV = self.classWMV.SSIM_WMV
-            self.epochStar = self.classWMV.epochStar
-            '''
-            if self.EMV_or_WMV == "EMV":
-                self.alpha_EMV = self.classWMV.alpha_EMV
-            else:
-                self.windowSize = self.classWMV.windowSize
-            '''
-            self.patienceNumber = self.classWMV.patienceNumber
-            self.SUCCESS = self.classWMV.SUCCESS
-
-            if self.SUCCESS:
-                print("SUCCESS WMVVVVVVVVVVVVVVVVVV")
+            # if self.SUCCESS:
+            #     print("SUCCESS WMVVVVVVVVVVVVVVVVVV")
         
         return loss
-
+    
+    #配置优化器，可以选择各种优化器
     def configure_optimizers(self):
         # Optimization algorithm according to command line
 
@@ -272,10 +263,10 @@ class DIP_2D(pl.LightningModule):
 
         if (self.opti_DIP == 'Adam'):
             optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=5E-8) # Optimizing using Adam
-            #optimizer = torch.optim.Adam(self.parameters(), lr=self.lr) # Optimizing using Adam
+
         elif (self.opti_DIP == 'LBFGS' or self.opti_DIP is None): # None means no argument was given in command line
-            optimizer = torch.optim.LBFGS(self.parameters(), lr=self.lr, history_size=10, max_iter=4,line_search_fn=None) # Optimizing using L-BFGS
-            optimizer = torch.optim.LBFGS(self.parameters(), lr=self.lr, history_size=10, max_iter=4,line_search_fn="strong_wolfe") # Optimizing using L-BFGS 1
+            # optimizer = torch.optim.LBFGS(self.parameters(), lr=self.lr, history_size=10, max_iter=4,line_search_fn=None) # Optimizing using L-BFGS
+            # optimizer = torch.optim.LBFGS(self.parameters(), lr=self.lr, history_size=10, max_iter=4,line_search_fn="strong_wolfe") # Optimizing using L-BFGS 1
             optimizer = torch.optim.LBFGS(self.parameters(), lr=self.lr, history_size=10, max_iter=40,line_search_fn="strong_wolfe") # Optimizing using L-BFGS 3
         elif (self.opti_DIP == 'SGD'):
             optimizer = torch.optim.SGD(self.parameters(), lr=self.lr) # Optimizing using SGD
@@ -283,6 +274,7 @@ class DIP_2D(pl.LightningModule):
             optimizer = torch.optim.Adadelta(self.parameters()) # Optimizing using Adadelta
         return optimizer
 
+    #保存照片
     def write_current_img(self,out):
         if (self.all_images_DIP == "False"):
             if ((self.current_epoch%(self.sub_iter_DIP // 10) == (self.sub_iter_DIP // 10) -1)):
@@ -298,18 +290,14 @@ class DIP_2D(pl.LightningModule):
             out_np = out.detach().numpy()[0,0,:,:]
         except:
             out_np = out.cpu().detach().numpy()[0,0,:,:]
-
-
-
         
-        '''
-        import matplotlib.pyplot as plt
-        plt.imshow(out.cpu().detach().numpy()[0,0,:,:],cmap='gray')
-        plt.colorbar()
-        plt.show()
-        '''
+        # import matplotlib.pyplot as plt
+        # plt.imshow(out.cpu().detach().numpy()[0,0,:,:],cmap='gray')
+        # plt.colorbar()
+        # plt.show()
+        
         print(self.last_iter)
-        self.save_img(out_np, self.path)#self.subroot+'Block2/' + self.suffix + '/out_cnn/' + format(self.experiment) + '/out_' + 'DIP' + format(self.global_it) + '_epoch=' + format(self.current_epoch + self.last_iter) + '.img') # The saved images are not destandardized !!!!!! Do it when showing images in tensorboard
+        self.save_img(out_np, self.path+'ouput.img')#self.subroot+'Block2/' + self.suffix + '/out_cnn/' + format(self.experiment) + '/out_' + 'DIP' + format(self.global_it) + '_epoch=' + format(self.current_epoch + self.last_iter) + '.img') # The saved images are not destandardized !!!!!! Do it when showing images in tensorboard
                             
     def suffix_func(self,config,hyperparameters_list,NNEPPS=False):
         config_copy = dict(config)
