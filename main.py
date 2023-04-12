@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 60bdea6bc65265b2dc51118b5a8c89206d4311f8
 # 模型相关
 import torch
 from models.DIP_2D import DIP_2D
@@ -13,26 +16,21 @@ import matplotlib.pyplot as plt
 # 自定义函数
 from utils.pre_utils import *
 
-
-
-
-# 图片路径定义
+# 定义各种文件的路径 
 path_noisy="/home/xzhang/Documents/我的模型/src/BSREM_it30.img" # 含噪图片位置
 path_output = "/home/xzhang/Documents/我的模型/output"            # 输出图片位置
-path_input = "/home/xzhang/Documents/我的模型/images/noise_images/"
-
-# ground_truth
-ground_truth = np.load("/home/xzhang/Documents/我的模型/images/noise_images/ground_truth.npy")
+PETImage_shape=(112,112,1)  # 输入图片的大小
+path_input = "/home/xzhang/Documents/我的模型/images/noise_images/" # 输入图片位置
 
 
-# 读取含噪图片
+# 读取不同的含噪声文件，目前只有一个，将其做rescale和格式转换tensor 1,1,112,112
 image_corrupt=fijii_np(path_noisy,PETImage_shape) # 读取图片并将图片转换成numpy array
 image_corrupt_input_scaled,param1_scale_im_corrupt,param2_scale_im_corrupt = rescale_imag(image_corrupt,"standardization") # 标准化图片, 减去平均值，除以标准差，参数1是mean，参数2是std
 image_corrupt_torch = torch.Tensor(image_corrupt_input_scaled)
 image_corrupt_torch = image_corrupt_torch.view(1,1,PETImage_shape[0],PETImage_shape[1],PETImage_shape[2])
 image_corrupt_torch = image_corrupt_torch[:,:,:,:,0]
 
-# 读取输入图片
+# 读取不同的噪声文件，用于输入。并且同样经过rescale处理
 image_net_input =np.random.uniform(PETImage_shape)
 image_net_input_torch = torch.rand(*PETImage_shape)
 
