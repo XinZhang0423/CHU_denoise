@@ -14,8 +14,9 @@ from skimage.metrics import structural_similarity
 
 # Local files to import
 #from vGeneral import vGeneral
-from vDenoising import vDenoising
+from model_utils import vDenoising
 
+# iresults.py
 class iResults(vDenoising):
     def __init__(self,config, *args, **kwargs):
         print("__init__")
@@ -485,3 +486,6 @@ class iResults(vDenoising):
             writer.add_scalar('Mean Concentration Recovery coefficient in background (best : 1)', AR_bkg_recon[i], i)
             writer.add_scalar('DIP loss', loss_DIP_recon[i], i)
             #writer.add_scalar('Image roughness in the background (best : 0)', IR_bkg_recon[i], i)
+
+def tensorboard_writer():
+    

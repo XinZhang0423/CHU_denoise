@@ -14,6 +14,7 @@ import abc
 
 # vGeneral 主要有图像的预处理，以及写到tensorboard中的函数
 class vGeneral(abc.ABC):
+    
     @abc.abstractmethod
     def __init__(self,config, *args, **kwargs):
         self.experiment = "not updated"
