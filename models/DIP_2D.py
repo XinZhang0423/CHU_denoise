@@ -41,7 +41,7 @@ class DIP_2D(pl.LightningModule):
         self.param1_scale_im_corrupt = param1_scale_im_corrupt
         self.param2_scale_im_corrupt = param2_scale_im_corrupt
 
-        self.path="/home/xzhang/Documents/我的模型/output"     
+        self.path="/home/xzhang/Documents/我的模型/output_images"     
         self.config = config
         #和tensorboard相关
         self.experiment = config["experiment"]
@@ -290,7 +290,7 @@ class DIP_2D(pl.LightningModule):
         # plt.show()
         
         print(self.last_iter)
-        self.save_img(out_np, self.path+'/'+format(self.current_epoch)+'_ouput.img')#self.subroot+'Block2/' + self.suffix + '/out_cnn/' + format(self.experiment) + '/out_' + 'DIP' + format(self.global_it) + '_epoch=' + format(self.current_epoch + self.last_iter) + '.img') # The saved images are not destandardized !!!!!! Do it when showing images in tensorboard
+        self.save_img(out_np, self.path+'/output_'+format(self.current_epoch)+'.img')#self.subroot+'Block2/' + self.suffix + '/out_cnn/' + format(self.experiment) + '/out_' + 'DIP' + format(self.global_it) + '_epoch=' + format(self.current_epoch + self.last_iter) + '.img') # The saved images are not destandardized !!!!!! Do it when showing images in tensorboard
                             
     def suffix_func(self,config,hyperparameters_list,NNEPPS=False):
         config_copy = dict(config)

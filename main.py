@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 
 
-=======
->>>>>>> 60bdea6bc65265b2dc51118b5a8c89206d4311f8
 # 模型相关
 import torch
 from models.DIP_2D import DIP_2D
@@ -18,7 +15,7 @@ from utils.pre_utils import *
 
 # 定义各种文件的路径 
 path_noisy="/home/xzhang/Documents/我的模型/src/BSREM_it30.img" # 含噪图片位置
-path_output = "/home/xzhang/Documents/我的模型/output"            # 输出图片位置
+path_output = "/home/xzhang/Documents/我的模型/output_images"            # 输出图片位置
 PETImage_shape=(112,112,1)  # 输入图片的大小
 path_input = "/home/xzhang/Documents/我的模型/images/noise_images/" # 输入图片位置
 
@@ -39,6 +36,8 @@ image_net_input_torch = image_net_input_torch[:,:,:,:,0]
 
 image_corrupt_input_scale,param1_scale_im_corrupt,param2_scale_im_corrupt = rescale_imag(image_corrupt,"standardization") 
 
+# ground_truth = np.zeros(PETImage_shape)
+ground_truth = np.load("/home/xzhang/Documents/我的模型/images/noise_images/image4_0.npy")
 
 # 加载数据
 train_dataset = torch.utils.data.TensorDataset(image_net_input_torch, image_corrupt_torch)
@@ -46,7 +45,7 @@ train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=1)
 
 # 加载模型
 model = DIP_2D(param1_scale_im_corrupt, param2_scale_im_corrupt, config,'data/Algo/',
-               "nested",all_images_DIP="False",global_it=-100, last_iter=-1,)
+               "nested",all_images_DIP="False",global_it=-100, suffix='aaa',last_iter=-1,ground_truth=ground_truth)
 model_class = DIP_2D
 
 # 定义tensorboard
