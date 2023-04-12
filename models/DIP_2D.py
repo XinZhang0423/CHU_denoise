@@ -36,9 +36,10 @@ class DIP_2D(pl.LightningModule):
         self.param1_scale_im_corrupt = param1_scale_im_corrupt
         self.param2_scale_im_corrupt = param2_scale_im_corrupt
 
-        self.path="/home/xzhang/Documents/我的模型/image/"
+        self.path="/home/xzhang/Documents/我的模型/output"     
         self.config = config
-        # self.experiment = config["experiment"]
+        #和tensorboard相关
+        self.experiment = config["experiment"]
         
         # 以下early stopping相关的我暂时不关心
         # Defining variables from config    
@@ -58,13 +59,9 @@ class DIP_2D(pl.LightningModule):
         #     self.classWMV.do_everything(config,root)
 
         self.write_current_img_mode = True
-        #self.suffix = self.suffix_func(config,hyperparameters_list)
-        #if (config["task"] == "post_reco"):
-        #    self.suffix = config["task"] + ' ' + self.suffix
         self.suffix = suffix
         
         self.last_iter = last_iter + 1
-        
         
         # Defining CNN variables
         L_relu = 0.2
@@ -220,36 +217,9 @@ class DIP_2D(pl.LightningModule):
             self.write_current_img(out)
 
         loss = self.DIP_loss(out, image_corrupt_torch)
-
-        # print maximum difference between output and noisy image to see if DIP can fit noisy image
-        # rel_max_diff = torch.max(torch.abs(out-image_corrupt_torch) / torch.max(image_corrupt_torch)).item()
-        # print("max diff = ",rel_max_diff)
-        # text_file = open(self.subroot+'Block2/' + self.suffix + '/max_diff.log','a')
-        # text_file.write("epoch = " + str(self.current_epoch) + " : " + str(rel_max_diff) + "\n")
-        # text_file.close()
-
-        # logging using tensorboard logger
-        # self.logger.experiment.add_scalar('loss', loss,self.current_epoch)        
-        # # WMV
-        # self.log("SUCCESS", int(self.classWMV.SUCCESS))
-        # if (self.DIP_early_stopping):
-        #     self.classWMV.SUCCESS,self.classWMV.VAR_min,self.classWMV.stagnate = self.classWMV.WMV(out.detach().numpy(),self.current_epoch,self.classWMV.queueQ,self.classWMV.SUCCESS,self.classWMV.VAR_min,self.classWMV.stagnate)
-        #     self.VAR_recon = self.classWMV.VAR_recon
-        #     self.MSE_WMV = self.classWMV.MSE_WMV
-        #     self.PSNR_WMV = self.classWMV.PSNR_WMV
-        #     self.SSIM_WMV = self.classWMV.SSIM_WMV
-        #     self.epochStar = self.classWMV.epochStar
-            
-            # if self.EMV_or_WMV == "EMV":
-            #     self.alpha_EMV = self.classWMV.alpha_EMV
-            # else:
-            #     self.windowSize = self.classWMV.windowSize
-            
-            # self.patienceNumber = self.classWMV.patienceNumber
-            # self.SUCCESS = self.classWMV.SUCCESS
-
-            # if self.SUCCESS:
-            #     print("SUCCESS WMVVVVVVVVVVVVVVVVVV")
+        
+        #使用tensorboard logger记录loss
+        self.logger.experiment.add_scalar('loss',loss,self.current_epoch)
         
         return loss
     
@@ -297,7 +267,7 @@ class DIP_2D(pl.LightningModule):
         # plt.show()
         
         print(self.last_iter)
-        self.save_img(out_np, self.path+'ouput.img')#self.subroot+'Block2/' + self.suffix + '/out_cnn/' + format(self.experiment) + '/out_' + 'DIP' + format(self.global_it) + '_epoch=' + format(self.current_epoch + self.last_iter) + '.img') # The saved images are not destandardized !!!!!! Do it when showing images in tensorboard
+        self.save_img(out_np, self.path+'/'+format(self.current_epoch)+'_ouput.img')#self.subroot+'Block2/' + self.suffix + '/out_cnn/' + format(self.experiment) + '/out_' + 'DIP' + format(self.global_it) + '_epoch=' + format(self.current_epoch + self.last_iter) + '.img') # The saved images are not destandardized !!!!!! Do it when showing images in tensorboard
                             
     def suffix_func(self,config,hyperparameters_list,NNEPPS=False):
         config_copy = dict(config)
