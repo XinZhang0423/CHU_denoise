@@ -3,8 +3,13 @@ import torch.nn as nn
 import pytorch_lightning as pl
 
 from numpy import inf
+import numpy as np
+
+import matplotlib.pyplot as plt
 
 import os
+
+from skimage.metrics import peak_signal_noise_ratio,structural_similarity
 
 # Local files to import
 #from iWMV import iWMV
@@ -12,8 +17,8 @@ import os
 class DIP_2D(pl.LightningModule):
 
     def __init__(self, param1_scale_im_corrupt, param2_scale_im_corrupt, 
-                 scaling_input, config, root, path, method, all_images_DIP,
-                 global_it, fixed_hyperparameters_list, hyperparameters_list, debug, suffix, last_iter):
+                 config, root,  method, all_images_DIP,
+                 global_it, suffix, last_iter,ground_truth):
         #初始化内部参数
         super().__init__()
 
@@ -40,6 +45,8 @@ class DIP_2D(pl.LightningModule):
         self.config = config
         #和tensorboard相关
         self.experiment = config["experiment"]
+        
+        self.target = np.squeeze(ground_truth)
         
         # 以下early stopping相关的我暂时不关心
         # Defining variables from config    
@@ -206,7 +213,14 @@ class DIP_2D(pl.LightningModule):
     # 定义损失函数为输出和含噪图像的tensor的mse
     def DIP_loss(self, out, image_corrupt_torch):
         return torch.nn.MSELoss()(out, image_corrupt_torch) # for DIP and DD
-
+    
+    # 定义metric
+    def DIP_metric(self, out_np):
+        psnr = peak_signal_noise_ratio(self.target, out_np, data_range=np.amax(out_np)-np.amin(out_np))
+        ssim = structural_similarity(self.target, out_np, data_range=np.amax(out_np)-np.amin(out_np))
+        
+        return psnr, ssim
+        
     # 定义训练流程，计算一次前向传播返回loss，（中间有logger记录tensorboard和early stopping）
     def training_step(self, train_batch, batch_idx):
         # train_batch 包含image_net_input_torch和image_corrupt_torch 分别为噪音图像和含噪图像 
@@ -218,8 +232,17 @@ class DIP_2D(pl.LightningModule):
 
         loss = self.DIP_loss(out, image_corrupt_torch)
         
+        try:
+            out_np = out.detach().numpy()
+        except:
+            out_np = out.cpu().detach().numpy()
+        
+        psnr, ssim = self.DIP_metric(np.squeeze(out_np))
+        
         #使用tensorboard logger记录loss
         self.logger.experiment.add_scalar('loss',loss,self.current_epoch)
+        self.logger.experiment.add_scalar('psnr',psnr,self.current_epoch)
+        self.logger.experiment.add_scalar('ssim',ssim,self.current_epoch)
         
         return loss
     

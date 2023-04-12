@@ -1,6 +1,8 @@
 #from ray import tune
 
 
+PETImage_shape=(112,112,1)  # 输入图片的大小
+
 settings_config = {
    
     "random_seed" : True, # If True, random seed is used for reproducibility (must be set to False to vary weights initialization)
