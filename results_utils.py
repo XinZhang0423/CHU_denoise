@@ -488,4 +488,4 @@ class iResults(vDenoising):
             #writer.add_scalar('Image roughness in the background (best : 0)', IR_bkg_recon[i], i)
 
 def tensorboard_writer():
-    
+    pass

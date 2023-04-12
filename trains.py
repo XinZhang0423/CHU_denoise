@@ -70,62 +70,62 @@ for npy in os.listdir("images/noise_images/"):
     trainer.fit(model, train_dataloader)
     out = model(image_net_input_torch)
 
-#     # 在训练完成后，使用logger读取日志文件并获取记录的值
-#     loss= logger.experiment.get_scalar('loss')
-#     psnr = logger.experiment.get_scalar('psnr')
-#     ssim = logger.experiment.get_scalar('ssim')
+    # 在训练完成后，使用logger读取日志文件并获取记录的值
+    loss= logger.experiment.get_scalar('loss')
+    psnr = logger.experiment.get_scalar('psnr')
+    ssim = logger.experiment.get_scalar('ssim')
     
-#     name = "DIP_2D_" + npy.split(".")[0] 
+    name = "DIP_2D_" + npy.split(".")[0] 
     
-#     result[name] = {'loss': loss, 'psnr': psnr, 'ssim': ssim}
+    result[name] = {'loss': loss, 'psnr': psnr, 'ssim': ssim}
     
-# # 写到.csv文件中
-# csv_dir = '/home/xzhang/Documents/我的模型/csvfiles'
+# 写到.csv文件中
+csv_dir = '/home/xzhang/Documents/我的模型/csvfiles'
  
-# with open(os.path.join(csv_dir,'results.csv'),'w',newline='') as csvfile:
-#     writer=csv.writer(csvfile)
-#     writer.writerow('input',result[name].keys())
-#     for name,res in result.items(): 
-#         for epoch,(loss,psnr,ssim) in enumerate(zip(result[name]['loss'],result[name]['psnr'],result[name]['ssim'])):
-#             writer.writerow([name,epoch,loss,psnr,ssim])
+with open(os.path.join(csv_dir,'results.csv'),'w',newline='') as csvfile:
+    writer=csv.writer(csvfile)
+    writer.writerow('input',result[name].keys())
+    for name,res in result.items(): 
+        for epoch,(loss,psnr,ssim) in enumerate(zip(result[name]['loss'],result[name]['psnr'],result[name]['ssim'])):
+            writer.writerow([name,epoch,loss,psnr,ssim])
         
 
-# # 读取.csv文件，并画图 
-# import pandas as pd 
-# import matplotlib.pyplot as plt
+# 读取.csv文件，并画图 
+import pandas as pd 
+import matplotlib.pyplot as plt
 
-# # 画出dip论文中的那种曲线图
-# def plot_results():
-#     df = pd.read_csv(os.path.join(path_output,"results.csv"))
+# 画出dip论文中的那种曲线图
+def plot_results():
+    df = pd.read_csv(os.path.join(path_output,"results.csv"))
     
-#     fig,axes=plt.subplots(nrows=3,ncols=1,figsize=(10,10))
-#     for name in df['input'].unique():
-#         data = df[df['input']==name]
+    fig,axes=plt.subplots(nrows=3,ncols=1,figsize=(10,10))
+    for name in df['input'].unique():
+        data = df[df['input']==name]
         
-#         axes[0].plot(range(config["sub_iter_DIP"]),data['loss'],label='loss')
-#         axes[0].set_xscale('log')
-#         axes[0].set_title('Loss')
-#         axes[0].set_xlabel('Sub-Iters')
-#         axes[0].set_ylabel('Loss')
-#         axes[0].legend()
+        axes[0].plot(range(config["sub_iter_DIP"]),data['loss'],label='loss')
+        axes[0].set_xscale('log')
+        axes[0].set_title('Loss')
+        axes[0].set_xlabel('Sub-Iters')
+        axes[0].set_ylabel('Loss')
+        axes[0].legend()
 
-#         axes[1].plot(range(config["sub_iter_DIP"]),data['psnr'],label='psnr')
-#         axes[1].set_xscale('log')
-#         axes[1].set_title('PSNR')
-#         axes[1].set_xlabel('Sub-Iters')
-#         axes[1].set_ylabel('PSNR')
-#         axes[1].legend()
+        axes[1].plot(range(config["sub_iter_DIP"]),data['psnr'],label='psnr')
+        axes[1].set_xscale('log')
+        axes[1].set_title('PSNR')
+        axes[1].set_xlabel('Sub-Iters')
+        axes[1].set_ylabel('PSNR')
+        axes[1].legend()
 
-#         axes[2].plot(range(config["sub_iter_DIP"]),data['ssim'],lable='ssim')
-#         axes[2].set_xscale('log')
-#         axes[2].set_title('SSIM')
-#         axes[2].set_xlabel('Sub-Iters')
-#         axes[2].set_ylabel('SSIM')
-#         axes[2].legend()
+        axes[2].plot(range(config["sub_iter_DIP"]),data['ssim'],lable='ssim')
+        axes[2].set_xscale('log')
+        axes[2].set_title('SSIM')
+        axes[2].set_xlabel('Sub-Iters')
+        axes[2].set_ylabel('SSIM')
+        axes[2].legend()
 
-#     fig.tight_layout()
+    fig.tight_layout()
  
-#     plt.savefig(os.path.join(path_output,"results.png"))
-#     plt.show()
+    plt.savefig(os.path.join(path_output,"results.png"))
+    plt.show()
     
     

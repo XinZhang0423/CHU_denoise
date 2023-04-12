@@ -11,6 +11,7 @@ import os
 
 from skimage.metrics import peak_signal_noise_ratio,structural_similarity
 
+from utils.pre_utils import *
 # Local files to import
 #from iWMV import iWMV
 
@@ -47,7 +48,7 @@ class DIP_2D(pl.LightningModule):
         self.experiment = config["experiment"]
         
         self.target = np.squeeze(ground_truth)
-        
+        self.full_contrast = True
         # 以下early stopping相关的我暂时不关心
         # Defining variables from config    
         # self.DIP_early_stopping = config["DIP_early_stopping"]
@@ -216,6 +217,7 @@ class DIP_2D(pl.LightningModule):
     
     # 定义metric
     def DIP_metric(self, out_np):
+        out_np = destand_numpy_imag(out_np,self.param1_scale_im_corrupt,self.param2_scale_im_corrupt)
         psnr = peak_signal_noise_ratio(self.target, out_np, data_range=np.amax(out_np)-np.amin(out_np))
         ssim = structural_similarity(self.target, out_np, data_range=np.amax(out_np)-np.amin(out_np))
         
@@ -236,15 +238,31 @@ class DIP_2D(pl.LightningModule):
             out_np = out.detach().numpy()
         except:
             out_np = out.cpu().detach().numpy()
+        out_np = np.squeeze(out_np)
         
-        psnr, ssim = self.DIP_metric(np.squeeze(out_np))
+        psnr, ssim = self.DIP_metric(out_np)
         
         #使用tensorboard logger记录loss
         self.logger.experiment.add_scalar('loss',loss,self.current_epoch)
         self.logger.experiment.add_scalar('psnr',psnr,self.current_epoch)
         self.logger.experiment.add_scalar('ssim',ssim,self.current_epoch)
         
+        # figure = self.plot_images(out_np)
+        # self.logger.experiment.add_figure('image',figure,global_step=self.global_step,close=True)
+        
         return loss
+    
+    def plot_images(self,out_np):
+        
+        plt.figure()
+        if (self.full_contrast):
+            plt.imshow(out_np, cmap='gray_r',vmin=np.min(out_np),vmax=np.max(out_np)) # Showing each out_np with maximum contrast and white is zero (gray_r) 
+        else:
+            plt.imshow(out_np, cmap='gray_r',vmin=np.min(out_np),vmax=1.25*np.max(out_np)) # Showing all images with same contrast and white is zero (gray_r)
+        plt.colorbar()
+        plt.title('train results',fontsize=16)
+
+        return plt.gcf()
     
     #配置优化器，可以选择各种优化器
     def configure_optimizers(self):

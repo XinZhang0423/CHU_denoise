@@ -34,7 +34,7 @@ image_net_input_torch = torch.rand(*PETImage_shape)
 image_net_input_torch = image_net_input_torch.view(1,1,PETImage_shape[0],PETImage_shape[1],PETImage_shape[2])
 image_net_input_torch = image_net_input_torch[:,:,:,:,0]
 
-image_corrupt_input_scale,param1_scale_im_corrupt,param2_scale_im_corrupt = rescale_imag(image_corrupt,"standardization") 
+
 
 # ground_truth = np.zeros(PETImage_shape)
 ground_truth = np.load("/home/xzhang/Documents/我的模型/images/noise_images/image4_0.npy")
@@ -53,7 +53,7 @@ checkpoint_simple_path = '/home/xzhang/Documents/我的模型/lightning_logs'
 # experiment = 24
 # name = 'my_model'
 
-logger = pl.loggers.TensorBoardLogger(save_dir=checkpoint_simple_path, )#version=format(experiment), name=name)
+logger = pl.loggers.TensorBoardLogger(save_dir=checkpoint_simple_path)#version=format(experiment), name=name)
 trainer = pl.Trainer(max_epochs=config["sub_iter_DIP"],log_every_n_steps=1,logger=logger)#, callbacks=[checkpoint_callback, tuning_callback, early_stopping_callback], logger=logger,gpus=gpus, accelerator=accelerator, profiler="simple")
 
 # 训练模型
@@ -61,7 +61,7 @@ trainer.fit(model, train_dataloader)
 out = model(image_net_input_torch)
 
 
-print(out.shape)
+
 image_out = out.view(PETImage_shape[0],PETImage_shape[1],PETImage_shape[2]).detach().numpy()
 image_concat = np.concatenate((image_corrupt, destand_numpy_imag(image_out,param1_scale_im_corrupt,param2_scale_im_corrupt)), axis=1)
 image_reversed =np.max(image_concat)-image_concat
