@@ -2,7 +2,7 @@
 # pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org torch
 
 matplotlib==3.3.4
-numpy==1.21.4
+numpy==1.22.0
 pandas==1.2.4
 pytorch-lightning==1.4.0
 ray[tune]
