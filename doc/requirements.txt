@@ -4,7 +4,7 @@
 matplotlib==3.3.4
 numpy==1.21.4
 pandas==1.2.4
-pytorch-lightning==1.4.0
+pytorch-lightning==1.6.0
 ray[tune]
 scikit-image==0.18.1
 scipy==1.6.2
