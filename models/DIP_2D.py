@@ -302,10 +302,7 @@ class DIP_2D(pl.LightningModule):
         except:
             out_np = out.cpu().detach().numpy()[0,0,:,:]
         
-        # import matplotlib.pyplot as plt
-        # plt.imshow(out.cpu().detach().numpy()[0,0,:,:],cmap='gray')
-        # plt.colorbar()
-        # plt.show()
+
         
         print(self.last_iter)
         self.save_img(out_np, self.path+'/output_'+format(self.current_epoch)+'.img')#self.subroot+'Block2/' + self.suffix + '/out_cnn/' + format(self.experiment) + '/out_' + 'DIP' + format(self.global_it) + '_epoch=' + format(self.current_epoch + self.last_iter) + '.img') # The saved images are not destandardized !!!!!! Do it when showing images in tensorboard
