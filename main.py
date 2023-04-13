@@ -27,20 +27,18 @@ image_corrupt_torch = torch.Tensor(image_corrupt_input_scaled)
 image_corrupt_torch = image_corrupt_torch.view(1,1,PETImage_shape[0],PETImage_shape[1],PETImage_shape[2])
 image_corrupt_torch = image_corrupt_torch[:,:,:,:,0]
 
+# ground_truth = np.zeros(PETImage_shape)
+ground_truth = np.load("/home/xzhang/Documents/我的模型/images/noise_images/image4_0.npy")
+
 # 读取不同的噪声文件，用于输入。并且同样经过rescale处理
 image_net_input =np.random.uniform(PETImage_shape)
-image_net_input_torch = torch.rand(*PETImage_shape)
+image_net_input_torch = torch.Tensor(ground_truth)
 
 image_net_input_torch = image_net_input_torch.view(1,1,PETImage_shape[0],PETImage_shape[1],PETImage_shape[2])
 image_net_input_torch = image_net_input_torch[:,:,:,:,0]
 
-
-
-# ground_truth = np.zeros(PETImage_shape)
-ground_truth = np.load("/home/xzhang/Documents/我的模型/images/noise_images/image4_0.npy")
-
 # 加载数据
-train_dataset = torch.utils.data.TensorDataset(image_net_input_torch, image_corrupt_torch)
+train_dataset = torch.utils.data.TensorDataset(image_net_input_torch, image_net_input_torch)
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=1) 
 
 # 加载模型

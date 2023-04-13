@@ -229,23 +229,23 @@ class DIP_2D(pl.LightningModule):
         image_net_input_torch, image_corrupt_torch = train_batch
         out = self.forward(image_net_input_torch)
         # Save image over epochs 如果开启保存模式则会把每一次epoch结果保存起来
-        if (self.write_current_img_mode):
-            self.write_current_img(out)
+        # if (self.write_current_img_mode):
+        #     self.write_current_img(out)
 
         loss = self.DIP_loss(out, image_corrupt_torch)
         
-        try:
-            out_np = out.detach().numpy()
-        except:
-            out_np = out.cpu().detach().numpy()
-        out_np = np.squeeze(out_np)
+        # try:
+        #     out_np = out.detach().numpy()
+        # except:
+        #     out_np = out.cpu().detach().numpy()
+        # out_np = np.squeeze(out_np)
         
-        psnr, ssim = self.DIP_metric(out_np)
+        # psnr, ssim = self.DIP_metric(out_np)
         
         #使用tensorboard logger记录loss
         self.logger.experiment.add_scalar('loss',loss,self.current_epoch)
-        self.logger.experiment.add_scalar('psnr',psnr,self.current_epoch)
-        self.logger.experiment.add_scalar('ssim',ssim,self.current_epoch)
+        # self.logger.experiment.add_scalar('psnr',psnr,self.current_epoch)
+        # self.logger.experiment.add_scalar('ssim',ssim,self.current_epoch)
         
         # figure = self.plot_images(out_np)
         # self.logger.experiment.add_figure('image',figure,global_step=self.global_step,close=True)

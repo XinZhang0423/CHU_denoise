@@ -23,9 +23,9 @@ fixed_config = {
 
 # Configuration dictionnary for hyperparameters to tune
 hyperparameters_config = {
-    "lr" : 1e-4, # Learning rate in network optimization
+    "lr" : 0.01, # Learning rate in network optimization
     # "lr" : ([0.01]), # Learning rate in network optimization
-    "sub_iter_DIP" : 10, # Number of epochs in network optimization
+    "sub_iter_DIP" : 10000, # Number of epochs in network optimization
     "opti_DIP" : 'Adam', # Optimization algorithm in neural network training (Adam, LBFGS)
     "skip_connections" : 3, # Number of skip connections in DIP architecture (0, 1, 2, 3)
 }
