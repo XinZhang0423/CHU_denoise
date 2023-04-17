@@ -41,7 +41,8 @@ class DIP_2D(pl.LightningModule):
         self.global_it = global_it
         self.param1_scale_im_corrupt = param1_scale_im_corrupt
         self.param2_scale_im_corrupt = param2_scale_im_corrupt
-
+        self.intial_param = config['initial_param']
+        
         self.path="/home/xzhang/Documents/我的模型/output_images"     
         self.config = config
         #和tensorboard相关
@@ -211,6 +212,26 @@ class DIP_2D(pl.LightningModule):
 
         return out
 
+
+    def init_weights(self):
+        for m in self.modules():
+		# 判断是否属于Conv2d
+            if isinstance(m, nn.Conv2d):
+                if self.intial_param == 'xavier_norm':
+                    torch.nn.init.xavier_normal_(m.weight.data)
+                elif self.intial_param == 'xavier_uniform':
+                    torch.nn.init.xavier_uniform_(m.weight.data)
+                elif self.intial_param == 'kaiming_norm':
+                    torch.nn.init.kaiming_normal_(m.weight.data)
+                elif self.intial_param == 'kaiming_uniform':
+                    torch.nn.init.kaiming_uniform_(m.weight.data)
+                # 判断是否有偏置
+                if m.bias is not None:
+                    torch.nn.init.constant_(m.bias.data,0.3)
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1) 		 
+                m.bias.data.zeros_()	
+        
     # 定义损失函数为输出和含噪图像的tensor的mse
     def DIP_loss(self, out, image_corrupt_torch):
         return torch.nn.MSELoss()(out, image_corrupt_torch) # for DIP and DD
@@ -234,18 +255,18 @@ class DIP_2D(pl.LightningModule):
 
         loss = self.DIP_loss(out, image_corrupt_torch)
         
-        # try:
-        #     out_np = out.detach().numpy()
-        # except:
-        #     out_np = out.cpu().detach().numpy()
-        # out_np = np.squeeze(out_np)
+        try:
+            out_np = out.detach().numpy()
+        except:
+            out_np = out.cpu().detach().numpy()
+        out_np = np.squeeze(out_np)
         
-        # psnr, ssim = self.DIP_metric(out_np)
+        psnr, ssim = self.DIP_metric(out_np)
         
         #使用tensorboard logger记录loss
         self.logger.experiment.add_scalar('loss',loss,self.current_epoch)
-        # self.logger.experiment.add_scalar('psnr',psnr,self.current_epoch)
-        # self.logger.experiment.add_scalar('ssim',ssim,self.current_epoch)
+        self.logger.experiment.add_scalar('psnr',psnr,self.current_epoch)
+        self.logger.experiment.add_scalar('ssim',ssim,self.current_epoch)
         
         # figure = self.plot_images(out_np)
         # self.logger.experiment.add_figure('image',figure,global_step=self.global_step,close=True)

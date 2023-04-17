@@ -1,0 +1,11 @@
+Failure # 1 (occurred at 2023-04-17_17-37-00)
+[36mray::ImplicitFunc.train()[39m (pid=227352, ip=172.27.198.43, repr=func)
+  File "/home/xzhang/miniconda3/envs/dip/lib/python3.8/site-packages/ray/tune/trainable/trainable.py", line 368, in train
+    raise skipped from exception_cause(skipped)
+  File "/home/xzhang/miniconda3/envs/dip/lib/python3.8/site-packages/ray/tune/trainable/function_trainable.py", line 337, in entrypoint
+    return self._trainable_func(
+  File "/home/xzhang/miniconda3/envs/dip/lib/python3.8/site-packages/ray/tune/trainable/function_trainable.py", line 654, in _trainable_func
+    output = fn()
+  File "main.py", line 61, in main_computation
+    trainer.init_weights()
+AttributeError: 'Trainer' object has no attribute 'init_weights'

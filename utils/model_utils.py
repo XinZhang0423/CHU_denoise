@@ -13,7 +13,7 @@ import re
 os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
 # Local files to import
-from image_utils import vGeneral
+from utils.image_utils import vGeneral
 
 from models.DIP_2D import DIP_2D # DIP
 from models.DIP_3D import DIP_3D # DIP

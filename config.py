@@ -1,4 +1,4 @@
-#from ray import tune
+from ray import tune
 
 
 PETImage_shape=(112,112,1)  # 输入图片的大小
@@ -12,6 +12,7 @@ settings_config = {
     "ray" : True, # Ray mode = run with raytune if True, to run several settings in parallel
     "tensorboard" : False, # Tensorboard mode = show results in tensorboard
     "experiment" : 24,
+    "initial_param":tune.grid_search(['xavier_norm', 'xavier_uniform', 'kaiming_norm', 'kaiming_uniform'])
 }
 
 # Configuration dictionnary for previous hyperparameters, but fixed to simplify
@@ -23,9 +24,9 @@ fixed_config = {
 
 # Configuration dictionnary for hyperparameters to tune
 hyperparameters_config = {
-    "lr" : 0.01, # Learning rate in network optimization
+    "lr" : tune.grid_search([1e-4,4e-4,7e-4,1e-3,4e-3,7e-3,1e-2,4e-2,7e-2,0.1,0.4,0.7,1]), # Learning rate in network optimization
     # "lr" : ([0.01]), # Learning rate in network optimization
-    "sub_iter_DIP" : 10000, # Number of epochs in network optimization
+    "sub_iter_DIP" : 100, # Number of epochs in network optimization
     "opti_DIP" : 'Adam', # Optimization algorithm in neural network training (Adam, LBFGS)
     "skip_connections" : 3, # Number of skip connections in DIP architecture (0, 1, 2, 3)
 }

@@ -1,0 +1,28 @@
+{
+  "DIP_early_stopping": false,
+  "FLTNB": "float",
+  "debug": false,
+  "experiment": 24,
+  "fixed_hyperparameters": [
+    "DIP_early_stopping",
+    "windowSize",
+    "patienceNumber"
+  ],
+  "hyperparameters": [
+    "lr",
+    "sub_iter_DIP",
+    "opti_DIP",
+    "skip_connections"
+  ],
+  "initial_param": "xavier_uniform",
+  "lr": 0.4,
+  "opti_DIP": "Adam",
+  "patienceNumber": 100,
+  "processing_unit": "CPU",
+  "random_seed": true,
+  "ray": true,
+  "skip_connections": 3,
+  "sub_iter_DIP": 100,
+  "tensorboard": false,
+  "windowSize": 50
+}
