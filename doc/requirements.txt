@@ -1,0 +1,14 @@
+# Run pip install with following option if ssh problems to install
+# pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org torch
+
+matplotlib==3.3.4
+numpy==1.21.4
+pandas==1.2.4
+pytorch-lightning==1.4.0
+ray[tune]
+scikit-image==0.18.1
+scipy==1.6.2
+tensorboard==2.6.0
+torch==1.8.1
+torchmetrics==0.6.0
+torchsummary==1.5.1
