@@ -44,22 +44,6 @@ class DIP_decoder(pl.LightningModule):
         # num_channel = [32, 64, 128, 256]
         pad = [0, 0]
 
-
-        # self.up0 = nn.Sequential(nn.Upsample(scale_factor=(2, 2), mode='bilinear', align_corners=False),
-        #                          nn.ReplicationPad2d(1),
-        #                          nn.Conv2d(num_channel[4], num_channel[3], 3, stride=(1, 1), padding=pad[0]),
-        #                          nn.BatchNorm2d(num_channel[3]),
-        #                          nn.LeakyReLU(L_relu))
-
-        # self.deep4 = nn.Sequential(nn.ReplicationPad2d(1),
-        #                            nn.Conv2d(num_channel[3], num_channel[3], (3, 3), stride=1, padding=pad[1]),
-        #                            nn.BatchNorm2d(num_channel[3]),
-        #                            nn.LeakyReLU(L_relu),
-        #                            nn.ReplicationPad2d(1),
-        #                            nn.Conv2d(num_channel[3], num_channel[3], (3, 3), stride=1, padding=pad[1]),
-        #                            nn.BatchNorm2d(num_channel[3]),
-        #                            nn.LeakyReLU(L_relu))
-
         self.up1 = nn.Sequential(nn.Upsample(scale_factor=(2, 2), mode='bilinear', align_corners=False),
                                  nn.ReplicationPad2d(1),
                                  nn.Conv2d(num_channel[3], num_channel[2], 3, stride=(1, 1), padding=pad[0]),
