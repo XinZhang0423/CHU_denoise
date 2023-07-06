@@ -7,7 +7,7 @@ pandas==1.2.4
 pytorch-lightning==1.4.0
 ray[tune]
 scikit-image==0.18.1
-scipy==1.6.2
+scipy==1.10.0
 tensorboard==2.6.0
 torch==1.8.1
 torchmetrics==0.6.0
